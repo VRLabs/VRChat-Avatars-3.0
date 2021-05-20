@@ -127,7 +127,7 @@ namespace VRLabs.AV3Manager
                 states = old.states.Select(x => CloneChildAnimatorState(x)).ToArray()
             };
             AssetDatabase.AddObjectToAsset(n, _assetPath);
-            n.defaultState = n.states.Where(x => x.state.nameHash == old.defaultState?.nameHash)
+            n.defaultState = n.states.Where(x => old.defaultState != null && x.state.nameHash == old.defaultState.nameHash)
                 .Select(x => x.state).FirstOrDefault();
 
             foreach (var oldb in old.behaviours)
@@ -175,8 +175,8 @@ namespace VRLabs.AV3Manager
                 tree.hideFlags = HideFlags.HideInHierarchy;
                 AssetDatabase.AddObjectToAsset(motion, _assetPath);
             }
-            
-            var n = new AnimatorState 
+
+            var n = new AnimatorState
             {
                 cycleOffset = old.cycleOffset,
                 cycleOffsetParameter = old.cycleOffsetParameter,
@@ -199,7 +199,7 @@ namespace VRLabs.AV3Manager
             AssetDatabase.AddObjectToAsset(n, _assetPath);
             return n;
         }
-        
+
         // Taken from here: https://gist.github.com/phosphoer/93ca8dcbf925fc006e4e9f6b799c13b0
         private static BlendTree CloneBlendTree(BlendTree newTree, BlendTree oldTree)
         {
@@ -228,6 +228,13 @@ namespace VRLabs.AV3Manager
                 else
                 {
                     pastedTree.AddChild(child.motion);
+                    var newChild = pastedTree.children[pastedTree.children.Length - 1];
+                    newChild.cycleOffset = child.cycleOffset;
+                    newChild.directBlendParameter = child.directBlendParameter;
+                    newChild.mirror = child.mirror;
+                    newChild.position = child.position;
+                    newChild.threshold = child.threshold;
+                    newChild.timeScale = child.timeScale;
                 }
             }
 
@@ -294,11 +301,11 @@ namespace VRLabs.AV3Manager
                         l.ApplySettings = d.ApplySettings;
                         l.debugString = d.debugString;
                         l.localOnly = d.localOnly;
-                        l.parameters = d.parameters.Select(p =>
+                        l.parameters = d.parameters.ConvertAll(p =>
                         {
                             string name = _parametersNewName.ContainsKey(p.name) ? _parametersNewName[p.name] : p.name;
                             return new VRC_AvatarParameterDriver.Parameter { name = name, value = p.value, chance = p.chance, valueMin = p.valueMin, valueMax = p.valueMax, type = p.type };
-                        }).ToList();
+                        });
                         break;
                     }
                 case VRCPlayableLayerControl l:
