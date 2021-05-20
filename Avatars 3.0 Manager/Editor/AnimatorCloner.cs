@@ -30,11 +30,6 @@ namespace VRLabs.AV3Manager
             if (saveToNew)
             {
                 Directory.CreateDirectory("Assets/VRLabs/GeneratedAssets");
-                /*f (!AssetDatabase.IsValidFolder(_standardNewAnimatorFolder.Substring(0, _standardNewAnimatorFolder.Length - 1)))
-                {
-                    AssetDatabase.CreateFolder("Assets/VRLabs", "GeneratedAssets");
-                }*/
-
                 string uniquePath = AssetDatabase.GenerateUniqueAssetPath(_standardNewAnimatorFolder + Path.GetFileName(_assetPath));
                 AssetDatabase.CopyAsset(_assetPath, uniquePath);
                 AssetDatabase.SaveAssets();
@@ -108,7 +103,6 @@ namespace VRLabs.AV3Manager
                 syncedLayerAffectsTiming = old.syncedLayerAffectsTiming,
                 stateMachine = CloneStateMachine(old.stateMachine)
             };
-            //AssetDatabase.AddObjectToAsset(n, assetPath);
             CloneTransitions(old.stateMachine, n.stateMachine);
             return n;
         }
