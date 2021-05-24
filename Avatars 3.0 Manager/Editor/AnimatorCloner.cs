@@ -221,14 +221,9 @@ namespace VRLabs.AV3Manager
                 }
                 else
                 {
-                    pastedTree.AddChild(child.motion);
-                    var newChild = pastedTree.children[pastedTree.children.Length - 1];
-                    newChild.cycleOffset = child.cycleOffset;
-                    newChild.directBlendParameter = child.directBlendParameter;
-                    newChild.mirror = child.mirror;
-                    newChild.position = child.position;
-                    newChild.threshold = child.threshold;
-                    newChild.timeScale = child.timeScale;
+                    var children = pastedTree.children;
+                    ArrayUtility.Add(ref children, child);
+                    pastedTree.children = children;
                 }
             }
 
