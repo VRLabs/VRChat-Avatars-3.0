@@ -427,7 +427,8 @@ namespace MarkerSystem
 
 			// setup in scene
 			GameObject marker = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath("Assets/VRLabs/Marker/Resources/Marker.prefab", typeof(GameObject))) as GameObject;
-			PrefabUtility.UnpackPrefabInstance(marker, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+			if (PrefabUtility.IsPartOfPrefabInstance(marker))
+				PrefabUtility.UnpackPrefabInstance(marker, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
 			marker.transform.SetParent(avatar.transform, false);
 
 			Transform system = marker.transform.Find("System");
@@ -562,19 +563,18 @@ namespace MarkerSystem
 				{
 					if (descriptor.baseAnimationLayers[2].animatorController != null && descriptor.baseAnimationLayers[2].animatorController.name != "")
 					{
-						if (descriptor.baseAnimationLayers[2].animatorController is AnimatorController)
+                        if (descriptor.baseAnimationLayers[2].animatorController is AnimatorController gesture)
                         {
-							AnimatorController gesture = (AnimatorController)descriptor.baseAnimationLayers[2].animatorController;
-							if (gesture.layers[0].avatarMask == null || gesture.layers[0].avatarMask.name == "")
-							{
-								warnings.Add("The first layer of your avatar's gesture layer is missing a mask. Try setting a mask, or using a copy of the VRCSDK gesture controller, or removing the controller from your avatar descriptor.");
-							}
-						} 
-						else
+                            if (gesture.layers[0].avatarMask == null || gesture.layers[0].avatarMask.name == "")
+                            {
+                                warnings.Add("The first layer of your avatar's gesture layer is missing a mask. Try setting a mask, or using a copy of the VRCSDK gesture controller, or removing the controller from your avatar descriptor.");
+                            }
+                        }
+                        else
                         {
-							warnings.Add("The gesture layer on this avatar is not an animator controller.");
-						}
-					}
+                            warnings.Add("The gesture layer on this avatar is not an animator controller.");
+                        }
+                    }
 				}
 				if (avatar == null)
 				{
