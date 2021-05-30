@@ -265,11 +265,9 @@ A marker for drawing. お絵描き用のペン。
 >
 > Drag the Marker.cs script onto your avatar. You can customize settings for installing the marker. Some settings have tooltips for explanation.
 > 
-> After generating the marker, the ink and eraser emit from MarkerTarget. Adjust the MarkerTarget transform if needed. 
-> 
-> For the index finger setup, position MarkerTarget on the tip of your avatar's index finger.
-> 
-> For the handheld marker setup, enter playmode with the emulator and enable T-Pose Calibration. Enable the marker. Position, rotate, and scale MarkerTarget to fit your avatar's hand. When finished, copy MarkerTarget's transform component to paste its values outside of playmode. 
+> After generating the marker, the ink and eraser emit from MarkerTarget. 
+>
+> Adjust the MarkerTarget transform by entering playmode with the emulator and enabling T-Pose Calibration. Enable the marker via its submenu. Position, rotate, and scale MarkerTarget such that the ink size and eraser size are to your liking. When finished, copy MarkerTarget's transform component to paste its values outside of playmode. 
 >
 > Click "Finish Setup" to finalize your marker and remove the script from your avatar.
 
