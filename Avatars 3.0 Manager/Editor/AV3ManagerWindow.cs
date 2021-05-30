@@ -38,6 +38,10 @@ namespace VRLabs.AV3Manager
             "Grounded",
             "Seated",
             "AFK",
+            "TrackingType",
+            "VRMode",
+            "MuteSelf",
+            "InStation",
             "Supine",
             "GroundProximity"
         };
