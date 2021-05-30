@@ -223,34 +223,6 @@ AnimationClip:
         outSlope: Infinity
         tangentMode: 103
         weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: TriggerModule.enabled
-    path: Light Slash/Armature/Collider
-    classID: 198
-    script: {fileID: 0}
-  - curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
-        weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
@@ -405,13 +377,6 @@ AnimationClip:
       isPPtrCurve: 0
     - serializedVersion: 2
       path: 1963907659
-      attribute: 1674343209
-      script: {fileID: 0}
-      typeID: 198
-      customType: 27
-      isPPtrCurve: 0
-    - serializedVersion: 2
-      path: 2791866044
       attribute: 1674343209
       script: {fileID: 0}
       typeID: 198
@@ -661,34 +626,6 @@ AnimationClip:
       m_RotationOrder: 4
     attribute: TriggerModule.enabled
     path: "Light Slash/Armature/\u0280\u1D07\u1D0D\u1D0F\u1D1B\u1D07 \uA731\u029F\u1D00\uA731\u029C"
-    classID: 198
-    script: {fileID: 0}
-  - curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: TriggerModule.enabled
-    path: Light Slash/Armature/Collider
     classID: 198
     script: {fileID: 0}
   - curve:
