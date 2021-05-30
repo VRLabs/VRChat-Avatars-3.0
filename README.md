@@ -219,7 +219,7 @@ Perform consecutive slashes with motion. モーションからのスラッシュ
   
 > Testing in Unity requires the [3.0 emulator by Lyuma](https://github.com/lyuma/Av3Emulator).
 > 
-> Merge the FX controller using the [Avatars 3.0 Manager](https://github.com/VRLabs/VRChat-Avatars-3.0/releases/download/1/AV3Manager.unitypackage) tool.
+> Merge the FX and Gesture controllers using the [Avatars 3.0 Manager](https://github.com/VRLabs/VRChat-Avatars-3.0/releases/download/1/AV3Manager.unitypackage) tool.
 > 
 > "LightSlashFX" is a synced parameter, so click the checkbox within the tool to add it to your avatar's parameter asset.
 > 
