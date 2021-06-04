@@ -299,7 +299,7 @@ A method for animating on particle death. パーティクルによるデスア�
 > 
 > Expand the prefab, and locate Particle Driver/ᴩᴀʀᴛɪᴄʟᴇᴅᴇᴀᴛʜ. ᴩᴀʀᴛɪᴄʟᴇᴅᴇᴀᴛʜ is a particle that when killed will change the weight of the ᴩᴀʀᴛɪᴄʟᴇᴅᴇᴀᴛʜ sublayer using VRC Animator Layer Control. The ᴩᴀʀᴛɪᴄʟᴇᴅᴇᴀᴛʜ float parameter will change with the weight of the ᴩᴀʀᴛɪᴄʟᴇᴅᴇᴀᴛʜ sublayer.
 >
-> Use the [Fix Order](https://github.com/VRLabs/VRChat-Avatars-3.0/releases/download/1/FixOrder.unitypackage) script before uploading or testing. Open VRLabs from the menu bar. Click "Fix Order". Run it again any time the layers related to this package change index order in your FX controller. This is so particle death controllers can reference the correct layers in their VRC Animator Layer Control state behaviors.
+> Use the [Fix Order](https://github.com/VRLabs/VRChat-Avatars-3.0/releases/download/1/FixOrder.unitypackage) script before uploading or testing. Open VRLabs from the menu bar. Click "Fix Order". Run it again any time the layers related to this package change index order in your FX or Gesture controllers. This is so particle death controllers can reference the correct layers in their VRC Animator Layer Control state behaviors.
 > 
 > By default, the particle settings on ᴩᴀʀᴛɪᴄʟᴇᴅᴇᴀᴛʜ will have it die inside Particle Driver/Cube.
 >
@@ -448,6 +448,8 @@ Some bandaids to make physics work on avatars. アバターで物理を機能さ
 >
 > Unpack the prefab by right-clicking it and move the prefab to base of your avatar.
 > 
+> Use the [Fix Order](https://github.com/VRLabs/VRChat-Avatars-3.0/releases/download/1/FixOrder.unitypackage) script before uploading or testing. Open VRLabs from the menu bar. Click "Fix Order". Run it again any time the layers related to this package change index order in your Gesture controller. This is so particle death controllers can reference the correct layers in their VRC Animator Layer Control state behaviors.
+>
 > World Physics/Rigidbody and World Physics/Rigidbody/Collider are set up for a physics demo. A cube falls and collides with the world.
 >
 > If you want to see the demo work, move World Physics/RigidbodyTarget out of the World Physics hierarchy and to the base of the avatar. Lift the RigidbodyTarget position on the Y axis, so there is room for the cube to fall. Use the emulator or test in-game.
