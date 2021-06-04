@@ -10,6 +10,7 @@ namespace VRLabs.FixOrder
     [ExecuteInEditMode]
     public class FixOrder : Editor
     {
+        static readonly int[] toPlayable = { 3, 4, 2, 1 }; // VRC_AnimatorLayerControl.BlendableLayer
         static readonly string path = "Assets/VRLabs/GeneratedAssets/";
         static readonly string tag = "Control ";
         public static int count;
@@ -19,22 +20,18 @@ namespace VRLabs.FixOrder
             VRCAvatarDescriptor[] avatars = FindObjectsOfType(typeof(VRCAvatarDescriptor)) as VRCAvatarDescriptor[];
             foreach (VRCAvatarDescriptor avatar in avatars)
             {
-                if (avatar.baseAnimationLayers[4].isDefault == true || avatar.baseAnimationLayers[4].animatorController == null) {continue;}
-                AnimatorController FX = (AnimatorController)avatar.baseAnimationLayers[4].animatorController;
                 foreach (Animator animator in avatar.GetComponentsInChildren<Animator>(true))
                 {
-                    if (animator.runtimeAnimatorController == null || animator.gameObject == avatar.gameObject) {continue;}
+                    if (animator.runtimeAnimatorController == null || animator.gameObject == avatar.gameObject) { continue; }
                     AnimatorController controller = (AnimatorController)animator.runtimeAnimatorController;
                     bool hasBeenCopied = false;
 
                     var query = (from AnimatorControllerLayer l in controller.layers
-                                where l.name.StartsWith(tag)
-                                select l).ToArray();
+                                    where l.name.StartsWith(tag)
+                                    select l).ToArray();
                     for (int i = 0; i < query.Length; i++) //foreach (AnimatorControllerLayer l in query)
                     {
                         AnimatorControllerLayer l = query[i];
-                        int index = FX.layers.ToList().FindIndex(x => x.name.Equals(l.name.Substring(tag.Length)));
-                        if (index == -1) {continue;}
                         for (int j = 0; j < l.stateMachine.states.Length; j++)  //foreach (ChildAnimatorState state in l.stateMachine.states)
                         {
                             ChildAnimatorState state = l.stateMachine.states[j];
@@ -44,7 +41,12 @@ namespace VRLabs.FixOrder
                                 if (behaviour.GetType() == typeof(VRCAnimatorLayerControl))
                                 {
                                     VRCAnimatorLayerControl ctrl = (VRCAnimatorLayerControl)behaviour;
-                                    if (ctrl.layer == index) {continue;}
+                                    int layer = toPlayable[(int)ctrl.playable];
+                                    if (avatar.baseAnimationLayers[layer].isDefault == true || avatar.baseAnimationLayers[layer].animatorController == null) { continue; }
+                                    AnimatorController playable = (AnimatorController)avatar.baseAnimationLayers[layer].animatorController;
+                                    int index = playable.layers.ToList().FindIndex(x => x.name.Equals(l.name.Substring(tag.Length)));
+                                    if (index == -1) { continue; }
+                                    if (ctrl.layer == index) { continue; }
                                     if (!hasBeenCopied)
                                     {
                                         controller = MakeCopy(avatar, controller);
@@ -71,6 +73,7 @@ namespace VRLabs.FixOrder
         private static AnimatorController MakeCopy(VRCAvatarDescriptor avi, AnimatorController c)
         {
             Directory.CreateDirectory(path + avi.name);
+            AssetDatabase.Refresh();
             string newPath = AssetDatabase.GenerateUniqueAssetPath(path + avi.name + "/" + c.name + ".controller");
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(c), newPath);
             c = AssetDatabase.LoadAssetAtPath(newPath, typeof(AnimatorController)) as AnimatorController;
