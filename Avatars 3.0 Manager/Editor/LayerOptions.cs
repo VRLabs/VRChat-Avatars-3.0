@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
 
@@ -47,7 +46,7 @@ namespace VRLabs.AV3Manager
             public static GUIContent AddMerge = new GUIContent("Add animator to merge", "Select animator to merge to the current layer animator.");
         }
 
-        // Contructor
+        // Constructor
         public LayerOptions(AV3ManagerWindow window, CustomAnimLayer layer, int index)
         {
             _window = window;
@@ -60,6 +59,8 @@ namespace VRLabs.AV3Manager
             }
             AdditionalController = new AnimatorToMerge(null, _window);
         }
+
+        public int Index => _index;
 
         // Draws this object
         public void DrawLayerOptions()
@@ -106,9 +107,7 @@ namespace VRLabs.AV3Manager
 
                     // Only show the list of parameters if there is a controller
                     if (Layer.animatorController != null)
-                    {
                         DrawParameterList();
-                    }
 
                     // If the merger is shown
                     if (_showMerger)
@@ -152,9 +151,7 @@ namespace VRLabs.AV3Manager
                     {
                         GUILayout.Space(10);
                         if (GUILayout.Button(Content.AddMerge))
-                        {
                             _showMerger = true;
-                        }
                     }
                 }
             }
@@ -192,16 +189,10 @@ namespace VRLabs.AV3Manager
         public void UpdateParameterList()
         {
             Parameters = new List<(AnimatorControllerParameter, bool)>();
-            if (Controller != null)
-            {
-                foreach (var p in Controller.parameters.Where(x => x.type == AnimatorControllerParameterType.Int || x.type == AnimatorControllerParameterType.Float || x.type == AnimatorControllerParameterType.Bool))
-                {
-                    if (AV3ManagerWindow.VRCParameters.Count(x => x.Equals(p.name)) <= 0)
-                    {
-                        Parameters.Add((p, _window.IsParameterInList(p)));
-                    }
-                }
-            }
+            if (Controller == null) return;
+            foreach (var p in Controller.parameters.Where(x => x.type == AnimatorControllerParameterType.Int || x.type == AnimatorControllerParameterType.Float || x.type == AnimatorControllerParameterType.Bool))
+                if (AV3ManagerWindow.VRCParameters.Count(x => x.Equals(p.name)) <= 0)
+                    Parameters.Add((p, _window.IsParameterInList(p)));
         }
     }
 }

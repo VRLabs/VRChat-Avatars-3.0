@@ -120,9 +120,9 @@ namespace VRLabs.AV3Manager
                 stateMachines = old.stateMachines.Select(x => CloneChildStateMachine(x)).ToArray(),
                 states = old.states.Select(x => CloneChildAnimatorState(x)).ToArray()
             };
+            
             AssetDatabase.AddObjectToAsset(n, _assetPath);
-            n.defaultState = n.states.Where(x => old.defaultState != null && x.state.nameHash == old.defaultState.nameHash)
-                .Select(x => x.state).FirstOrDefault();
+            n.defaultState = FindState(old.defaultState, old, n);
 
             foreach (var oldb in old.behaviours)
             {
@@ -311,14 +311,81 @@ namespace VRLabs.AV3Manager
             }
         }
 
+        private static AnimatorState FindState(AnimatorState original, AnimatorStateMachine old, AnimatorStateMachine n)
+        {
+            AnimatorState[] oldStates = GetStatesRecursive(old).ToArray();
+            AnimatorState[] newStates = GetStatesRecursive(n).ToArray();
+            for (int i = 0; i < oldStates.Length; i++)
+                if (oldStates[i] == original)
+                    return newStates[i];
+            
+            return null;
+        }
+
+        private static AnimatorStateMachine FindStateMachine(AnimatorStateTransition transition, AnimatorStateMachine sm)
+        {
+            AnimatorStateMachine[] childrenSm = sm.stateMachines.Select(x => x.stateMachine).ToArray();
+            var dstSm = Array.Find(childrenSm, x => x.name == transition.destinationStateMachine.name);
+            if (dstSm != null)
+                return dstSm;
+
+            foreach (var childSm in childrenSm)
+            {
+                dstSm = FindStateMachine(transition, childSm);
+                if (dstSm != null)
+                    return dstSm;
+            }
+
+            return null;
+        }
+
+        private static List<AnimatorState> GetStatesRecursive(AnimatorStateMachine sm)
+        {
+            List<AnimatorState> childrenStates = sm.states.Select(x => x.state).ToList();
+            foreach (var child in sm.stateMachines.Select(x => x.stateMachine))
+                childrenStates.AddRange(GetStatesRecursive(child));
+
+            return childrenStates;
+        }
+
+        private static List<AnimatorStateMachine> GetStateMachinesRecursive(AnimatorStateMachine sm)
+        {
+            List<AnimatorStateMachine> childrenSm = sm.stateMachines.Select(x => x.stateMachine).ToList();
+
+            List<AnimatorStateMachine> gcsm = new List<AnimatorStateMachine>();
+            foreach (var child in childrenSm)
+                gcsm.AddRange(GetStateMachinesRecursive(child));
+
+            childrenSm.AddRange(gcsm);
+            return childrenSm;
+        }
+
+        private static AnimatorState FindMatchingState(List<AnimatorState> old, List<AnimatorState> n, AnimatorTransitionBase transition)
+        {
+            for (int i = 0; i < old.Count; i++)
+                if (transition.destinationState == old[i])
+                    return n[i];
+
+            return null;
+        }
+        
+        private static AnimatorStateMachine FindMatchingStateMachine(List<AnimatorStateMachine> old, List<AnimatorStateMachine> n, AnimatorTransitionBase transition)
+        {
+            for (int i = 0; i < old.Count; i++)
+                if (transition.destinationStateMachine == old[i])
+                    return n[i];
+
+            return null;
+        }
+
         private static void CloneTransitions(AnimatorStateMachine old, AnimatorStateMachine n)
         {
-            AnimatorState[] oldStates = old.states.Select(x => x.state).ToArray();
-            AnimatorState[] newStates = n.states.Select(x => x.state).ToArray();
-            AnimatorStateMachine[] oldStateMachines = old.stateMachines.Select(x => x.stateMachine).ToArray();
-            AnimatorStateMachine[] newStateMachines = n.stateMachines.Select(x => x.stateMachine).ToArray();
+            List<AnimatorState> oldStates = GetStatesRecursive(old);
+            List<AnimatorState> newStates = GetStatesRecursive(n);
+            List<AnimatorStateMachine> oldStateMachines = GetStateMachinesRecursive(old);
+            List<AnimatorStateMachine> newStateMachines = GetStateMachinesRecursive(n);
             // Generate state transitions
-            for (int i = 0; i < oldStates.Length; i++)
+            for (int i = 0; i < oldStates.Count; i++)
             {
                 foreach (var transition in oldStates[i].transitions)
                 {
@@ -329,25 +396,19 @@ namespace VRLabs.AV3Manager
                     }
                     else if (transition.destinationState != null)
                     {
-                        var dstState = Array.Find(newStates, x => x.name == transition.destinationState.name);
+                        var dstState = FindMatchingState(oldStates, newStates, transition);
                         if (dstState != null)
-                        {
                             newTransition = newStates[i].AddTransition(dstState);
-                        }
                     }
                     else if (transition.destinationStateMachine != null)
                     {
-                        var dstState = Array.Find(newStateMachines, x => x.name == transition.destinationStateMachine.name);
+                        var dstState = FindMatchingStateMachine(oldStateMachines, newStateMachines, transition);
                         if (dstState != null)
-                        {
                             newTransition = newStates[i].AddTransition(dstState);
-                        }
                     }
 
                     if (newTransition != null)
-                    {
                         ApplyTransitionSettings(transition, newTransition);
-                    }
                 }
             }
 
@@ -357,55 +418,40 @@ namespace VRLabs.AV3Manager
                 AnimatorStateTransition newTransition = null;
                 if (transition.destinationState != null)
                 {
-                    var dstState = Array.Find(newStates, x => x.name == transition.destinationState.name);
+                    var dstState = FindMatchingState(oldStates, newStates, transition);
                     if (dstState != null)
-                    {
                         newTransition = n.AddAnyStateTransition(dstState);
-                    }
                 }
                 else if (transition.destinationStateMachine != null)
                 {
-                    var dstState = Array.Find(newStateMachines, x => x.name == transition.destinationStateMachine.name);
+                    var dstState = FindMatchingStateMachine(oldStateMachines, newStateMachines, transition);
                     if (dstState != null)
-                    {
                         newTransition = n.AddAnyStateTransition(dstState);
-                    }
                 }
+                
                 if (newTransition != null)
-                {
                     ApplyTransitionSettings(transition, newTransition);
-                }
             }
 
-            // Generate EntryState transitiosn
+            // Generate EntryState transitions
             foreach (var transition in old.entryTransitions)
             {
                 AnimatorTransition newTransition = null;
                 if (transition.destinationState != null)
                 {
-                    var dstState = Array.Find(newStates, x => x.name == transition.destinationState.name);
+                    var dstState = FindMatchingState(oldStates, newStates, transition);
                     if (dstState != null)
-                    {
                         newTransition = n.AddEntryTransition(dstState);
-                    }
                 }
                 else if (transition.destinationStateMachine != null)
                 {
-                    var dstState = Array.Find(newStateMachines, x => x.name == transition.destinationStateMachine.name);
+                    var dstState = FindMatchingStateMachine(oldStateMachines, newStateMachines, transition);
                     if (dstState != null)
-                    {
                         newTransition = n.AddEntryTransition(dstState);
-                    }
                 }
+                
                 if (newTransition != null)
-                {
                     ApplyTransitionSettings(transition, newTransition);
-                }
-            }
-
-            for (int i = 0; i < oldStateMachines.Length; i++)
-            {
-                CloneTransitions(oldStateMachines[i], newStateMachines[i]);
             }
         }
 
@@ -424,10 +470,10 @@ namespace VRLabs.AV3Manager
             newTransition.interruptionSource = transition.interruptionSource;
             newTransition.orderedInterruption = transition.orderedInterruption;
             newTransition.solo = transition.solo;
-            foreach (var contition in transition.conditions)
+            foreach (var condition in transition.conditions)
             {
-                string conditionName = _parametersNewName.ContainsKey(contition.parameter) ? _parametersNewName[contition.parameter] : contition.parameter;
-                newTransition.AddCondition(contition.mode, contition.threshold, conditionName);
+                string conditionName = _parametersNewName.ContainsKey(condition.parameter) ? _parametersNewName[condition.parameter] : condition.parameter;
+                newTransition.AddCondition(condition.mode, condition.threshold, conditionName);
             }
         }
 
@@ -438,9 +484,9 @@ namespace VRLabs.AV3Manager
             newTransition.mute = transition.mute;
             newTransition.name = transition.name;
             newTransition.solo = transition.solo;
-            foreach (var contition in transition.conditions)
+            foreach (var condition in transition.conditions)
             {
-                newTransition.AddCondition(contition.mode, contition.threshold, contition.parameter);
+                newTransition.AddCondition(condition.mode, condition.threshold, condition.parameter);
             }
         }
     }

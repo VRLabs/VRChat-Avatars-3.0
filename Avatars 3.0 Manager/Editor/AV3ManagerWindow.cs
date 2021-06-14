@@ -71,11 +71,11 @@ namespace VRLabs.AV3Manager
             _showLayers = _avatar != null;
             if (_avatar != null)
             {
-                _layers = new LayerOptions[_avatar.baseAnimationLayers.Length];
+                _layers = new LayerOptions[_avatar.baseAnimationLayers.Length + _avatar.specialAnimationLayers.Length];
                 for (int i = 0; i < _avatar.baseAnimationLayers.Length; i++)
-                {
                     _layers[i] = new LayerOptions(this, _avatar.baseAnimationLayers[i], i);
-                }
+                for (int i = _avatar.baseAnimationLayers.Length; i < _layers.Length; i++)
+                    _layers[i] = new LayerOptions(this, _avatar.specialAnimationLayers[i - _avatar.baseAnimationLayers.Length], i);
             }
         }
 
@@ -101,33 +101,25 @@ namespace VRLabs.AV3Manager
                 {
                     _avatar.customExpressions = true;
                     if (_avatar.expressionParameters == null)
-                    {
                         GenerateNewExpressionParametersAsset();
-                    }
+                    
                     if (_avatar.expressionsMenu == null)
-                    {
                         GenerateNewExpressionMenuAsset();
-                    }
 
                     UsedParameterSlots = _avatar.expressionParameters.CalcTotalCost();
 
-                    _layers = new LayerOptions[_avatar.baseAnimationLayers.Length];
-                    for (int i = 0; i < _avatar.baseAnimationLayers.Length; i++)
-                    {
-                        _layers[i] = new LayerOptions(this, _avatar.baseAnimationLayers[i], i);
-                    }
+                    RebuildLayers();
                 }
             }
 
             if (_showLayers)
             {
                 if (_layers == null)
-                {
                     RebuildLayers();
-                }
+                
                 foreach (var l in _layers)
                 {
-                    GUILayout.Space(10);
+                    GUILayout.Space(l.Index == _avatar.baseAnimationLayers.Length ? 50 : 10); 
                     l.DrawLayerOptions();
                 }
             }
@@ -194,7 +186,10 @@ namespace VRLabs.AV3Manager
         // Updates a layer value, need to do this cause the CustomAnimLayer is a struct and not a class.
         public void UpdateLayer(int index, VRCAvatarDescriptor.CustomAnimLayer layer)
         {
-            _avatar.baseAnimationLayers[index] = layer;
+            if(index >= _avatar.baseAnimationLayers.Length)
+                _avatar.specialAnimationLayers[index - _avatar.baseAnimationLayers.Length] = layer;
+            else
+                _avatar.baseAnimationLayers[index] = layer;
         }
 
         // Check if the provided parameter is in the list.
@@ -225,11 +220,9 @@ namespace VRLabs.AV3Manager
                 {
                     for (int i = 0; i < param.Count; i++)
                     {
-                        if (param[i].name.Equals(parameter.name))
-                        {
-                            param.RemoveAt(i);
-                            somethingModified = true;
-                        }
+                        if (!param[i].name.Equals(parameter.name)) continue;
+                        param.RemoveAt(i);
+                        somethingModified = true;
                     }
                 }
 
@@ -249,14 +242,7 @@ namespace VRLabs.AV3Manager
         // Check if a specific parameter is a duplicate
         public bool IsParameterDuplicate(string name)
         {
-            foreach (var layer in _layers)
-            {
-                if (layer.Controller?.parameters.Count(x => x.name.Equals(name)) > 0)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return _layers.Any(layer => layer.Controller != null && layer.Controller.parameters.Count(x => x.name.Equals(name)) > 0);
         }
     }
 }
