@@ -1,4 +1,5 @@
 #if VRC_SDK_VRCSDK3
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -12,6 +13,12 @@ namespace VRLabs.AV3Manager
 {
     public class AV3ManagerWindow : EditorWindow
     {
+        private enum WindowSection
+        {
+            Layers,
+            Parameters
+        }
+        
         // Menu item
         [MenuItem("VRLabs/Avatars 3.0 Manager")]
         public static void Init()
@@ -48,27 +55,37 @@ namespace VRLabs.AV3Manager
 
         private const string _standardNewAnimatorFolder = "Assets/VRLabs/GeneratedAssets/";
 
-        public int UsedParameterSlots { get; set; }
+        public int UsedParameterMemory { get; set; }
         // UI text
         private static class Content
         {
             public static GUIContent PlaymodeError = new GUIContent("Please exit Play Mode to use this script.");
             public static GUIContent Avatar = new GUIContent("Avatar", "Your avatar.");
+            public static GUIContent WdOff = new GUIContent("Set WD off", "Set Write defaults off for all animators in this avatar descriptor.");
+            public static GUIContent WdOn = new GUIContent("Set WD on", "Set Write defaults on for all animators in this avatar descriptor.");
+            public static GUIContent RefreshParameterList = new GUIContent("Refresh parameters list", "Refreshes the list of the parameters in the asset based on your currently applied animators.");
+            public static GUIContent CopyParameterValues = new GUIContent("Copy parameter values", "Copy the default value and saved bool for each parameter found in the given asset.");
         }
 
         private Vector2 _mainScrollviewPosition;
+
+        private VRCExpressionParameters _paramsToCopy;
 
         // Avatar descriptor
         private VRCAvatarDescriptor _avatar = null;
         // Animator layers
         private LayerOptions[] _layers;
+        
+        // Currently shown section
+        private WindowSection _section;
+        
         // Show layers
-        private bool _showLayers = false;
+        private bool _showContent = false;
 
         // Rebuild layer objects
         private void RebuildLayers()
         {
-            _showLayers = _avatar != null;
+            _showContent = _avatar != null;
             if (_avatar != null)
             {
                 _layers = new LayerOptions[_avatar.baseAnimationLayers.Length + _avatar.specialAnimationLayers.Length];
@@ -89,14 +106,14 @@ namespace VRLabs.AV3Manager
                 EditorGUILayout.LabelField(Content.PlaymodeError);
                 return;
             }
-            _mainScrollviewPosition = EditorGUILayout.BeginScrollView(_mainScrollviewPosition);
+            
             GUILayout.Space(10);
             EditorGUI.BeginChangeCheck();
             _avatar = (VRCAvatarDescriptor)EditorGUILayout.ObjectField(Content.Avatar, _avatar, typeof(VRCAvatarDescriptor), true);
 
             if (EditorGUI.EndChangeCheck())
             {
-                _showLayers = _avatar != null;
+                _showContent = _avatar != null;
                 if (_avatar != null)
                 {
                     _avatar.customExpressions = true;
@@ -106,25 +123,119 @@ namespace VRLabs.AV3Manager
                     if (_avatar.expressionsMenu == null)
                         GenerateNewExpressionMenuAsset();
 
-                    UsedParameterSlots = _avatar.expressionParameters.CalcTotalCost();
+                    UsedParameterMemory = _avatar.expressionParameters.CalcTotalCost();
 
                     RebuildLayers();
                 }
             }
 
-            if (_showLayers)
-            {
-                if (_layers == null)
-                    RebuildLayers();
+            if (!_showContent) return;
+            
+            if (_layers == null)
+                RebuildLayers();
+            
+            GUILayout.Space(10);
+            
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button(Content.WdOff))
+                foreach (var layer in _layers.Where(x => !x.Layer.isDefault))
+                    AV3ManagerFunctions.SetWriteDefaults(layer.Controller, false);
+            
+            if (GUILayout.Button(Content.WdOn))
+                foreach (var layer in _layers.Where(x => !x.Layer.isDefault))
+                    AV3ManagerFunctions.SetWriteDefaults(layer.Controller, true);
+            
+            EditorGUILayout.EndHorizontal();
+            
+            GUILayout.Space(10);
+            _section = (WindowSection)GUILayout.Toolbar((int)_section, Enum.GetNames(typeof(WindowSection)), EditorStyles.toolbarButton, GUI.ToolbarButtonSize.Fixed);
                 
-                foreach (var l in _layers)
+            _mainScrollviewPosition = EditorGUILayout.BeginScrollView(_mainScrollviewPosition);
+                
+            switch (_section)
+            {
+                case WindowSection.Layers:
                 {
-                    GUILayout.Space(l.Index == _avatar.baseAnimationLayers.Length ? 50 : 10); 
-                    l.DrawLayerOptions();
+                    foreach (var l in _layers)
+                    {
+                        GUILayout.Space(l.Index == _avatar.baseAnimationLayers.Length ? 50 : 10);
+                        l.DrawLayerOptions();
+                    }
+
+                    break;
+                }
+                case WindowSection.Parameters:
+                {
+                    DrawParametersTab();
+                    break;
+                }
+            }
+            EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawParametersTab()
+        {
+            GUILayout.Space(10);
+            _avatar.expressionParameters = (VRCExpressionParameters)EditorGUILayout.ObjectField("Expression parameters", _avatar.expressionParameters, typeof(VRCExpressionParameters), false);
+            
+            if (GUILayout.Button(Content.RefreshParameterList))
+                CleanupParametersList();
+
+            GUILayout.Space(10);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Name", EditorStyles.miniBoldLabel);
+            EditorGUILayout.LabelField("Type", EditorStyles.miniBoldLabel, GUILayout.Width(100));
+            EditorGUILayout.LabelField("Default", EditorStyles.miniBoldLabel, GUILayout.Width(64));
+            EditorGUILayout.LabelField("Saved", EditorStyles.miniBoldLabel, GUILayout.Width(40));
+            EditorGUILayout.EndHorizontal();
+
+            foreach (var parameter in _avatar.expressionParameters.parameters)
+            {
+                EditorGUILayout.BeginHorizontal();
+                //parameter.name = EditorGUILayout.TextField(parameter.name);
+                EditorGUILayout.LabelField(parameter.name);
+                EditorGUI.BeginDisabledGroup(true);
+                parameter.valueType = (ValueType)EditorGUILayout.EnumPopup(parameter.valueType, GUILayout.Width(100));
+                EditorGUI.EndDisabledGroup();
+
+                switch (parameter.valueType)
+                {
+                    case ValueType.Int:
+                        parameter.defaultValue = Mathf.Clamp(EditorGUILayout.IntField((int)parameter.defaultValue, GUILayout.Width(64)), 0, 255);
+                        break;
+                    case ValueType.Float:
+                        parameter.defaultValue = Mathf.Clamp(EditorGUILayout.FloatField(parameter.defaultValue, GUILayout.Width(64)), -1f, 1f);
+                        break;
+                    case ValueType.Bool:
+                        GUILayout.Space(24);
+                        parameter.defaultValue = EditorGUILayout.Toggle(parameter.defaultValue != 0, GUILayout.Width(40)) ? 1f : 0f;
+                        break;
+                }
+
+                GUILayout.Space(10);
+                parameter.saved = EditorGUILayout.Toggle(parameter.saved, GUILayout.Width(30));
+
+                EditorGUILayout.EndHorizontal();
+                GUILayout.Space(5);
+            }
+
+            EditorGUILayout.HelpBox($"Memory used: {UsedParameterMemory}/{MAX_PARAMETER_COST}", MessageType.None);
+            
+            GUILayout.Space(20);
+            _paramsToCopy = (VRCExpressionParameters)EditorGUILayout.ObjectField("Parameters to copy", _paramsToCopy, typeof(VRCExpressionParameters), false);
+            if (GUILayout.Button(Content.CopyParameterValues) && _paramsToCopy != null)
+            {
+                foreach (var parameter in _paramsToCopy.parameters)
+                {
+                    Parameter p = _avatar.expressionParameters.FindParameter(parameter.name);
+                    if (p == null) continue;
+                    p.defaultValue = parameter.defaultValue;
+                    p.saved = parameter.saved;
                 }
             }
 
-            EditorGUILayout.EndScrollView();
+
         }
 
         // Generates new Expression parameters Asset
@@ -143,21 +254,21 @@ namespace VRLabs.AV3Manager
             _avatar.expressionParameters.parameters[0] = new Parameter
             {
                 name = "VRCEmote",
-                valueType = VRCExpressionParameters.ValueType.Int,
+                valueType = ValueType.Int,
                 defaultValue = 0,
                 saved = false
             };
             _avatar.expressionParameters.parameters[1] = new Parameter
             {
                 name = "VRCFaceBlendH",
-                valueType = VRCExpressionParameters.ValueType.Float,
+                valueType = ValueType.Float,
                 defaultValue = 0,
                 saved = false
             };
             _avatar.expressionParameters.parameters[2] = new Parameter
             {
                 name = "VRCFaceBlendV",
-                valueType = VRCExpressionParameters.ValueType.Float,
+                valueType = ValueType.Float,
                 defaultValue = 0,
                 saved = false
             };
@@ -198,6 +309,51 @@ namespace VRLabs.AV3Manager
             Parameter o = _avatar.expressionParameters.FindParameter(parameter.name);
             return o != null;
         }
+
+        public void CleanupParametersList()
+        {
+            var syncedParameters = _layers?.SelectMany(x => x.Parameters)
+                .Where(x => x.Item2)
+                .Select(x => x.Item1)
+                .Append(new AnimatorControllerParameter{ name = "VRCEmote", type = AnimatorControllerParameterType.Int, defaultInt = 0})
+                .Append(new AnimatorControllerParameter{ name = "VRCFaceBlendH", type = AnimatorControllerParameterType.Float, defaultFloat = 0})
+                .Append(new AnimatorControllerParameter{ name = "VRCFaceBlendV", type = AnimatorControllerParameterType.Float, defaultFloat = 0})
+                .ToArray();
+
+            var param = new List<Parameter>(_avatar.expressionParameters.parameters);
+            var remaining = new List<Parameter>(param);
+
+            bool somethingModified = false;
+            foreach (var parameter in param)
+            {
+                bool toDelete = syncedParameters?.All(syncedParameter => !parameter.name.Equals(syncedParameter.name)) ?? false;
+
+                if (!toDelete) continue;
+                remaining.Remove(parameter);
+                somethingModified = true;
+            }
+
+            foreach (var syncedParameter in syncedParameters)
+            {
+                bool toAdd = param?.All(parameter => !parameter.name.Equals(syncedParameter.name)) ?? false;
+                if (!toAdd) continue;
+                remaining.Add(new Parameter
+                {
+                    name = syncedParameter.name,
+                    valueType = AV3ManagerFunctions.GetValueTypeFromAnimatorParameterType(syncedParameter.type),
+                    defaultValue = 0,
+                    saved = false
+                });
+                somethingModified = true;
+            }
+
+            if (!somethingModified) return;
+            
+            _avatar.expressionParameters.parameters = remaining.ToArray();
+            EditorUtility.SetDirty(_avatar.expressionParameters);
+            UsedParameterMemory = _avatar.expressionParameters.CalcTotalCost();
+        }
+        
         // Adds or removes a parameter based on the enabled boolean.
         public void UpdateParameter(AnimatorControllerParameter parameter, bool enabled)
         {
@@ -236,7 +392,7 @@ namespace VRLabs.AV3Manager
                 }
                 EditorUtility.SetDirty(_avatar.expressionParameters);
             }
-            UsedParameterSlots = _avatar.expressionParameters.CalcTotalCost();
+            UsedParameterMemory = _avatar.expressionParameters.CalcTotalCost();
         }
 
         // Check if a specific parameter is a duplicate

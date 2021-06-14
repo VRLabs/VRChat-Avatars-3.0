@@ -320,14 +320,12 @@ namespace VRLabs.AV3Manager
         
         private static AnimatorStateMachine SetInStateMachine (AnimatorStateMachine stateMachine, bool wd)
         {
-            for (int i = 0; i < stateMachine.states.Length; i++)
-            {
-                stateMachine.states[i].state.writeDefaultValues = wd;
-            }
-            for (int i = 0; i < stateMachine.stateMachines.Length; i++)
-            {
-                SetInStateMachine(stateMachine.stateMachines[i].stateMachine, wd);
-            }
+            foreach (ChildAnimatorState t in stateMachine.states)
+                t.state.writeDefaultValues = wd;
+            
+            foreach (ChildAnimatorStateMachine t in stateMachine.stateMachines)
+                SetInStateMachine(t.stateMachine, wd);
+            
             return stateMachine;
         }
     }

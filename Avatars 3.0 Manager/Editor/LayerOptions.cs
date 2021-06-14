@@ -93,6 +93,7 @@ namespace VRLabs.AV3Manager
                         Layer.animatorController = null;
                         _window.UpdateLayer(_index, Layer);
                         UpdateParameterList();
+                        _window.CleanupParametersList();
                     }
                     GUILayout.Space(10);
                     EditorGUI.BeginChangeCheck();
@@ -103,6 +104,7 @@ namespace VRLabs.AV3Manager
                         Layer.animatorController = Controller;
                         _window.UpdateLayer(_index, Layer);
                         UpdateParameterList();
+                        _window.CleanupParametersList();
                     }
 
                     // Only show the list of parameters if there is a controller
@@ -173,7 +175,7 @@ namespace VRLabs.AV3Manager
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField(p.name);
                 EditorGUI.BeginChangeCheck();
-                EditorGUI.BeginDisabledGroup(!((_window.UsedParameterSlots + VRCExpressionParameters.TypeCost(AV3ManagerFunctions.GetValueTypeFromAnimatorParameterType(p.type))) <= VRCExpressionParameters.MAX_PARAMETER_COST) && !b);
+                EditorGUI.BeginDisabledGroup(!((_window.UsedParameterMemory + VRCExpressionParameters.TypeCost(AV3ManagerFunctions.GetValueTypeFromAnimatorParameterType(p.type))) <= VRCExpressionParameters.MAX_PARAMETER_COST) && !b);
                 b = EditorGUILayout.Toggle(b, GUILayout.Width(20));
                 EditorGUI.EndDisabledGroup();
                 if (EditorGUI.EndChangeCheck())
