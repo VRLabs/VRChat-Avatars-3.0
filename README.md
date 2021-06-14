@@ -173,7 +173,7 @@ Ten grabbable avatar objects. つかむことができる10個のアバターオ
 >
 > There is a numbered series from 1 to 10. Place your item prop under a number and reset the prop's transforms. Nested under each number are some objects that you will move.
 >
-> The #:Default object represents your item's default transforms while not grabbed. Move #:Default anywhere in your hierarchy, and adjust it's transforms until your item is where you want it.
+> The #:Default object represents your item's default transforms while not grabbed. Move #:Default anywhere in your hierarchy, and adjust it's transforms until your item is where you want it. You must move the #:Default object out of the parent number object before adjusting the transform. The same rule follows for each object under a numbered parent.
 >
 > The #:Contact Area object represents the place you touch to grab the item. Enable the mesh renderer component on the #:Contact Area object. The mesh renderer component is for visualization, and can be turned off or deleted after setup.
 >
