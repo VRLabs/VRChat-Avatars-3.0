@@ -267,7 +267,9 @@ A marker for drawing. お絵描き用のペン。
 > 
 > After generating the marker, the ink and eraser emit from MarkerTarget. 
 >
-> Adjust the MarkerTarget transform by entering playmode with the emulator and enabling T-Pose Calibration. Enable the marker via its submenu. Position, rotate, and scale MarkerTarget such that the ink size and eraser size are to your liking. When finished, copy MarkerTarget's transform component to paste its values outside of playmode. 
+> Adjust the MarkerTarget transform by entering playmode with the emulator and enabling T-Pose Calibration. Enable the marker via its submenu. For the index finger setup, make sure MarkerTarget is positioned on the tip of your index finger. For the handheld pen setup, move and rotate MarkerTarget so your hand correctly holds the pen. MarkerTarget may also be freely scaled, if needed.
+>
+> When finished adjusting MarkerTarget, copy its transform component to paste its values outside of playmode.
 >
 > Click "Finish Setup" to finalize your marker and remove the script from your avatar.
 
