@@ -30,6 +30,7 @@ namespace MarkerSystem
 		private readonly string path_defaultGesture = "Assets/VRCSDK/Examples3/Animation/Controllers/vrc_AvatarV3HandsLayer.controller";
 		private readonly string path_defaultMaskL = "Assets/VRCSDK/Examples3/Animation/Masks/vrc_Hand Left.mask";
 		private readonly string path_defaultMaskR = "Assets/VRCSDK/Examples3/Animation/Masks/vrc_Hand Right.mask";
+		const float KSIVL_UNIT = 0.4156029f;
 
 		public void Reset()
 		{
@@ -191,11 +192,11 @@ namespace MarkerSystem
 		public void Generate()
 		{
 			// Unique directory setup, named after avatar
-			Directory.CreateDirectory("Assets/VRLabs/Marker/Generated/");
+			Directory.CreateDirectory("Assets/VRLabs/GeneratedAssets/Marker/");
 			AssetDatabase.Refresh();
 			// Folder name cannot contain these chars
 			string cleanedName = string.Join("", descriptor.name.Split('/', '?', '<', '>', '\\', ':', '*', '|', '\"'));
-			string guid = AssetDatabase.CreateFolder("Assets/VRLabs/Marker/Generated", cleanedName);
+			string guid = AssetDatabase.CreateFolder("Assets/VRLabs/GeneratedAssets/Marker", cleanedName);
 			string directory = AssetDatabase.GUIDToAssetPath(guid) + "/";
 
 			// Install layers, parameters, and menu before prefab setup
@@ -436,6 +437,7 @@ namespace MarkerSystem
 		    Transform markerTarget = targets.Find("MarkerTarget");
 			Transform markerModel = targets.Find("Model");
 			Transform eraser = system.Find("Eraser");
+			Transform local = marker.transform.Find("World").Find("Local");
 
 			// constrain cull object to avatar
 			Transform cull = marker.transform.Find("Cull");
@@ -472,27 +474,26 @@ namespace MarkerSystem
 			markerTarget.localPosition = Vector3.zero;
 			markerTarget.localRotation = Quaternion.Euler(0f, 0f, 0f);
 
+			HumanBodyBones[] bones = { HumanBodyBones.Hips, HumanBodyBones.Chest, HumanBodyBones.Head, HumanBodyBones.LeftHand, HumanBodyBones.RightHand,
+			HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot };
+			ParentConstraint localConstraint = local.GetComponent<ParentConstraint>();
+
+			localConstraint.SetSource(0, new ConstraintSource { sourceTransform = avatar.transform, weight = 1f });
 			if (localSpace)
-			{
-				targets.Find("M_LocalSpace2").SetParent(avatar.GetBoneTransform(HumanBodyBones.Hips), false);
-				targets.Find("M_LocalSpace3").SetParent(avatar.GetBoneTransform(HumanBodyBones.Chest), false);
-
-				Transform headRef = targets.Find("HeadRef"); // special setup for head bone b/c local shrink
-				headRef.SetParent(avatar.GetBoneTransform(HumanBodyBones.Head), false); // get head position,
-				headRef.SetParent(avatar.GetBoneTransform(HumanBodyBones.Neck), true); // but parent to neck
-				headRef.GetComponent<RotationConstraint>().SetSource(0, new ConstraintSource
-					{ sourceTransform = avatar.GetBoneTransform(HumanBodyBones.Head), weight = 1f} );
-
-				targets.Find("M_LocalSpace5").SetParent(avatar.GetBoneTransform(HumanBodyBones.LeftHand), false);
-				targets.Find("M_LocalSpace6").SetParent(avatar.GetBoneTransform(HumanBodyBones.RightHand), false);
-
+            {
+				for (int i = 0; i < 5; i ++)
+                {
+					localConstraint.SetSource(i+1, new ConstraintSource { sourceTransform = avatar.GetBoneTransform(bones[i]), weight = 0f });
+				}
 				if (localSpaceFullBody == 1)
 				{
-					targets.Find("M_LocalSpace7").SetParent(avatar.GetBoneTransform(HumanBodyBones.LeftFoot), false);
-					targets.Find("M_LocalSpace8").SetParent(avatar.GetBoneTransform(HumanBodyBones.RightFoot), false);
+					for (int i = 5; i < 7; i++)
+					{
+						localConstraint.SetSource(i + 1, new ConstraintSource { sourceTransform = avatar.GetBoneTransform(bones[i]), weight = 0f });
+					}
 				}
-			} 
-			targets.Find("M_LocalSpace1").SetParent(avatar.transform, false);
+			}
+			
 			DestroyImmediate(targets.gameObject); // remove the "Targets" container object when finished
 
 			// set anything not adjustable to a medium-ish amount
@@ -510,6 +511,15 @@ namespace MarkerSystem
 				main = preview.GetComponent<ParticleSystem>().main;
 				main.startSize = size;
 			}
+
+			// scale MarkerTarget, which controls prefab size, according to a (normalized) worldspace distance between avatar hips and head
+			Transform hips = avatar.GetBoneTransform(HumanBodyBones.Hips);
+			Transform head = avatar.GetBoneTransform(HumanBodyBones.Head);
+			Vector3 dist = (head.position - hips.position);
+
+			float normalizedDist = (Math.Max(Math.Max(dist.x, dist.y), dist.z) / KSIVL_UNIT);
+			float newScale = markerTarget.localScale.x * normalizedDist;
+			markerTarget.localScale = new Vector3(newScale, newScale, newScale);
 
 			((Marker)target).system = system;
 			((Marker)target).markerTarget = markerTarget;
@@ -594,7 +604,7 @@ namespace MarkerSystem
 					{
 						if (useIndexFinger && ((avatar.GetBoneTransform(HumanBodyBones.LeftIndexDistal) == null) || (avatar.GetBoneTransform(HumanBodyBones.RightIndexDistal) == null)))
 						{
-							warnings.Add("Your avatar rig's left and/or right index finger's 3rd bone is unmapped!");
+							warnings.Add("Your avatar rig's left and/or right index finger's distal bone is unmapped!");
 						}
 						if ((avatar.GetBoneTransform(HumanBodyBones.LeftHand) == null) || (avatar.GetBoneTransform(HumanBodyBones.RightHand) == null))
                         {
