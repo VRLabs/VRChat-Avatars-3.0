@@ -37,7 +37,7 @@ namespace VRLabs.AV3Manager
     /// Helpful functions for script writers using the VRChat Avatars 3.0 SDK and VRLabs 3.0 manager.
     /// Merge controllers, add parameters, and add submenus to an avatar.
     /// </summary>
-    public class AV3ManagerFunctions : Editor
+    public static class AV3ManagerFunctions
     {
         private const string defaultDirectory = "Assets/VRLabs/GeneratedAssets/";
         private static readonly string[] defaultLayerPath = new string[]
@@ -284,6 +284,42 @@ namespace VRLabs.AV3Manager
         }
 
         /// <summary>
+        /// Checks if the avatar descriptor has mixing "Write defaults" settings across its animators.
+        /// </summary>
+        /// <param name="descriptor">Avatar descriptor to check.</param>
+        /// <returns>True if the avatar animators contain mixed write defaults, false otherwise.</returns>
+        public static bool HasMixedWriteDefaults(this VRCAvatarDescriptor descriptor)
+        {
+            bool isOn = false;
+            bool checkedFirst = false;
+            bool isMixed;
+            foreach (var layer in descriptor.baseAnimationLayers)
+            {
+                if (!(layer.animatorController is AnimatorController controller)) continue;
+                foreach (var animationLayer in controller.layers)
+                {
+                    (checkedFirst, isOn, isMixed) = GetWdInStateMachine(animationLayer.stateMachine, checkedFirst, isOn);
+                    if(isMixed)
+                        return true;
+                }
+            }
+            foreach (var layer in descriptor.specialAnimationLayers)
+            {
+                if (!(layer.animatorController is AnimatorController controller)) continue;
+                foreach (var animationLayer in controller.layers)
+                {
+                    (checkedFirst, isOn, isMixed) = GetWdInStateMachine(animationLayer.stateMachine, checkedFirst, isOn);
+                    if(isMixed)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+        
+        
+        
+        /// <summary>
         /// Sets the "Write Defaults" value of all the states in an entire animator controller to true or false.
         /// Will modify the controller directly.
         /// </summary>
@@ -316,6 +352,31 @@ namespace VRLabs.AV3Manager
             return type == AnimatorControllerParameterType.Int
                 ? ValueType.Int
                 : (type == AnimatorControllerParameterType.Bool ? ValueType.Bool : ValueType.Float);
+        }
+        
+        private static (bool, bool, bool) GetWdInStateMachine (AnimatorStateMachine stateMachine, bool checkedFirst, bool isOn)
+        {
+            foreach (ChildAnimatorState t in stateMachine.states)
+            {
+                if (!checkedFirst)
+                {
+                    isOn = t.state.writeDefaultValues;
+                    checkedFirst = true;
+                    continue;
+                }
+                if (isOn != t.state.writeDefaultValues)
+                    return (true, isOn, true);
+            }
+
+            bool isMixed;
+            foreach (ChildAnimatorStateMachine t in stateMachine.stateMachines)
+            {
+                (checkedFirst, isOn, isMixed) = GetWdInStateMachine(t.stateMachine, checkedFirst, isOn);
+                if(isMixed)
+                    return (checkedFirst, isOn, true);
+            }
+
+            return (checkedFirst, isOn, false);
         }
         
         private static AnimatorStateMachine SetInStateMachine (AnimatorStateMachine stateMachine, bool wd)

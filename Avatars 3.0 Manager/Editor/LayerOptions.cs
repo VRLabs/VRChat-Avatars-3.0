@@ -94,6 +94,7 @@ namespace VRLabs.AV3Manager
                         _window.UpdateLayer(_index, Layer);
                         UpdateParameterList();
                         _window.CleanupParametersList();
+                        _window.RefreshWDState();
                     }
                     GUILayout.Space(10);
                     EditorGUI.BeginChangeCheck();
@@ -105,6 +106,7 @@ namespace VRLabs.AV3Manager
                         _window.UpdateLayer(_index, Layer);
                         UpdateParameterList();
                         _window.CleanupParametersList();
+                        _window.RefreshWDState();
                     }
 
                     // Only show the list of parameters if there is a controller
@@ -132,6 +134,7 @@ namespace VRLabs.AV3Manager
                             UpdateParameterList();
                             _showMerger = false;
                             AdditionalController.Clear();
+                            _window.RefreshWDState();
                         }
                         if (GUILayout.Button(Content.MergeNew) && AdditionalController.Controller != null)
                         {
@@ -140,6 +143,7 @@ namespace VRLabs.AV3Manager
                             UpdateParameterList();
                             _showMerger = false;
                             AdditionalController.Clear();
+                            _window.RefreshWDState();
                         }
                         if (GUILayout.Button(Content.CancelMerge))
                         {
@@ -193,7 +197,7 @@ namespace VRLabs.AV3Manager
             Parameters = new List<(AnimatorControllerParameter, bool)>();
             if (Controller == null) return;
             foreach (var p in Controller.parameters.Where(x => x.type == AnimatorControllerParameterType.Int || x.type == AnimatorControllerParameterType.Float || x.type == AnimatorControllerParameterType.Bool))
-                if (AV3ManagerWindow.VRCParameters.Count(x => x.Equals(p.name)) <= 0)
+                if (AV3ManagerWindow.VrcParameters.Count(x => x.Equals(p.name)) <= 0)
                     Parameters.Add((p, _window.IsParameterInList(p)));
         }
     }

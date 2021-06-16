@@ -108,7 +108,7 @@ namespace VRLabs.AV3Manager
                 {
                     ParameterState s = ParameterState.Unique;
                     string st = "";
-                    if (AV3ManagerWindow.VRCParameters.Count(x => x.Equals(p.name)) > 0)
+                    if (AV3ManagerWindow.VrcParameters.Count(x => x.Equals(p.name)) > 0)
                     {
                         s = ParameterState.Default;
                     }
