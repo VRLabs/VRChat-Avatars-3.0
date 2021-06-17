@@ -53,8 +53,6 @@ namespace VRLabs.AV3Manager
             "GroundProximity"
         };
 
-        private const string STANDARD_NEW_ANIMATOR_FOLDER = "Assets/VRLabs/GeneratedAssets/";
-
         public int UsedParameterMemory { get; set; }
         // UI text
         private static class Content
@@ -73,10 +71,10 @@ namespace VRLabs.AV3Manager
 
         private VRCExpressionParameters _paramsToCopy;
         
-        private VRCAvatarDescriptor _avatar = null;
+        private VRCAvatarDescriptor _avatar;
         private LayerOptions[] _layers;
         private WindowSection _section;
-        private bool _showContent = false;
+        private bool _showContent;
         private bool _useDefaultParameters = true;
         private bool _isMixedWriteDefaults;
 
@@ -263,10 +261,10 @@ namespace VRLabs.AV3Manager
         // Generates new Expression parameters Asset
         private void GenerateNewExpressionParametersAsset()
         {
-            if (!AssetDatabase.IsValidFolder(STANDARD_NEW_ANIMATOR_FOLDER.Substring(0, STANDARD_NEW_ANIMATOR_FOLDER.Length - 1)))
+            if (!AssetDatabase.IsValidFolder(AnimatorCloner.STANDARD_NEW_ANIMATOR_FOLDER.Substring(0, AnimatorCloner.STANDARD_NEW_ANIMATOR_FOLDER.Length - 1)))
                 AssetDatabase.CreateFolder("Assets/VRLabs", "GeneratedAssets");
             
-            string uniquePath = AssetDatabase.GenerateUniqueAssetPath(STANDARD_NEW_ANIMATOR_FOLDER + "Parameters.asset");
+            string uniquePath = AssetDatabase.GenerateUniqueAssetPath(AnimatorCloner.STANDARD_NEW_ANIMATOR_FOLDER + "Parameters.asset");
             _avatar.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
             // Initialize vrc parameters array
             _avatar.expressionParameters.parameters = new Parameter[3];
@@ -303,10 +301,10 @@ namespace VRLabs.AV3Manager
         // Generates new expression menu asset
         private void GenerateNewExpressionMenuAsset()
         {
-            if (!AssetDatabase.IsValidFolder(STANDARD_NEW_ANIMATOR_FOLDER.Substring(0, STANDARD_NEW_ANIMATOR_FOLDER.Length - 1)))
+            if (!AssetDatabase.IsValidFolder(AnimatorCloner.STANDARD_NEW_ANIMATOR_FOLDER.Substring(0, AnimatorCloner.STANDARD_NEW_ANIMATOR_FOLDER.Length - 1)))
                 AssetDatabase.CreateFolder("Assets/VRLabs", "GeneratedAssets");
             
-            string uniquePath = AssetDatabase.GenerateUniqueAssetPath(STANDARD_NEW_ANIMATOR_FOLDER + "Menu.asset");
+            string uniquePath = AssetDatabase.GenerateUniqueAssetPath(AnimatorCloner.STANDARD_NEW_ANIMATOR_FOLDER + "Menu.asset");
             _avatar.expressionsMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
             AssetDatabase.CreateAsset(_avatar.expressionsMenu, uniquePath);
             EditorUtility.SetDirty(_avatar.expressionsMenu);
@@ -360,7 +358,7 @@ namespace VRLabs.AV3Manager
 
             foreach (var syncedParameter in syncedParameters)
             {
-                bool toAdd = param?.All(parameter => !parameter.name.Equals(syncedParameter.name)) ?? false;
+                bool toAdd = param.All(parameter => !parameter.name.Equals(syncedParameter.name));
                 if (!toAdd) continue;
                 remaining.Add(new Parameter
                 {
@@ -421,9 +419,9 @@ namespace VRLabs.AV3Manager
         }
 
         // Check if a specific parameter is a duplicate
-        public bool IsParameterDuplicate(string name)
+        public bool IsParameterDuplicate(string parameterName)
         {
-            return _layers.Any(layer => layer.Controller != null && layer.Controller.parameters.Count(x => x.name.Equals(name)) > 0);
+            return _layers.Any(layer => layer.Controller != null && layer.Controller.parameters.Count(x => x.name.Equals(parameterName)) > 0);
         }
     }
 }

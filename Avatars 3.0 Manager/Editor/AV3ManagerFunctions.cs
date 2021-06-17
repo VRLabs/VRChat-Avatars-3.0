@@ -1,6 +1,7 @@
 ﻿#if VRC_SDK_VRCSDK3
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -39,8 +40,8 @@ namespace VRLabs.AV3Manager
     /// </summary>
     public static class AV3ManagerFunctions
     {
-        private const string defaultDirectory = "Assets/VRLabs/GeneratedAssets/";
-        private static readonly string[] defaultLayerPath = new string[]
+        private const string DEFAULT_DIRECTORY = "Assets/VRLabs/GeneratedAssets/";
+        private static readonly string[] _defaultLayerPath = 
         {
             "Assets/VRCSDK/Examples3/Animation/Controllers/vrc_AvatarV3LocomotionLayer.controller",
             "Assets/VRCSDK/Examples3/Animation/Controllers/vrc_AvatarV3IdleLayer.controller",
@@ -78,8 +79,8 @@ namespace VRLabs.AV3Manager
             }
             else if ((directory == null) || (directory == ""))
             {
-                Debug.Log("Directory was not specified, storing new parameters asset in " + defaultDirectory);
-                directory = defaultDirectory;
+                Debug.Log("Directory was not specified, storing new parameters asset in " + DEFAULT_DIRECTORY);
+                directory = DEFAULT_DIRECTORY;
             }
 
             descriptor.customExpressions = true;
@@ -150,8 +151,8 @@ namespace VRLabs.AV3Manager
             }
             else if ((directory == null) || (directory == ""))
             {
-                Debug.Log("Directory was not specified, storing new topmost menu in " + defaultDirectory);
-                directory = defaultDirectory;
+                Debug.Log("Directory was not specified, storing new topmost menu in " + DEFAULT_DIRECTORY);
+                directory = DEFAULT_DIRECTORY;
             }
 
             descriptor.customExpressions = true;
@@ -235,19 +236,19 @@ namespace VRLabs.AV3Manager
             }
             else if (layer < 4) // fx layer has no default layer
             {
-                if ((AssetDatabase.LoadAssetAtPath(defaultLayerPath[layer], typeof(AnimatorController)) as AnimatorController) == null)
+                if ((AssetDatabase.LoadAssetAtPath(_defaultLayerPath[layer], typeof(AnimatorController)) as AnimatorController) == null)
                 {
-                    Debug.LogError("Couldn't find VRChat's default animator controller at path '" + defaultLayerPath[layer] + "'! Merging was not performed.");
+                    Debug.LogError("Couldn't find VRChat's default animator controller at path '" + _defaultLayerPath[layer] + "'! Merging was not performed.");
                     return;
                 }
             }
-            else if (directory == null || directory == "")
+            else if (string.IsNullOrEmpty(directory))
             {
-                Debug.Log("Directory was not specified, storing new controller in " + defaultDirectory);
-                directory = defaultDirectory;
+                Debug.Log("Directory was not specified, storing new controller in " + DEFAULT_DIRECTORY);
+                directory = DEFAULT_DIRECTORY;
             }
 
-            if ((descriptor.baseAnimationLayers[layer].isDefault == true) || descriptor.baseAnimationLayers[layer].animatorController == null)
+            if ((descriptor.baseAnimationLayers[layer].isDefault) || descriptor.baseAnimationLayers[layer].animatorController == null)
             {
                 descriptor.customizeAnimationLayers = true;
                 descriptor.baseAnimationLayers[layer].isDefault = false;
@@ -262,7 +263,7 @@ namespace VRLabs.AV3Manager
                 }
                 else
                 {
-                    AssetDatabase.CopyAsset(defaultLayerPath[layer], pathFromNew);
+                    AssetDatabase.CopyAsset(_defaultLayerPath[layer], pathFromNew);
                     controllerFromNew = AssetDatabase.LoadAssetAtPath(pathFromNew, typeof(AnimatorController)) as AnimatorController;
                 }
                 descriptor.baseAnimationLayers[layer].animatorController = controllerFromNew;
@@ -295,7 +296,7 @@ namespace VRLabs.AV3Manager
             bool isMixed;
             foreach (var layer in descriptor.baseAnimationLayers)
             {
-                if (!(layer.animatorController is AnimatorController controller)) continue;
+                if (!(layer.animatorController is AnimatorController controller) || controller == null) continue;
                 foreach (var animationLayer in controller.layers)
                 {
                     (checkedFirst, isOn, isMixed) = GetWdInStateMachine(animationLayer.stateMachine, checkedFirst, isOn);
@@ -341,9 +342,33 @@ namespace VRLabs.AV3Manager
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+
+        /// <summary>
+        /// Get all states of an animator controller.
+        /// </summary>
+        /// <param name="controller">Controller used.</param>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="AnimatorState"/> contained in the given controller.</returns>
+        public static IEnumerable<AnimatorState> GetAnimatorStates(this AnimatorController controller)
+        {
+            var animatorStates = new List<AnimatorState>();
+            foreach (var animationLayer in controller.layers)
+                animatorStates.AddRange(GetLayerStatesRecursive(animationLayer.stateMachine));
+
+            return animatorStates;
+        }
         
         /// <summary>
-        /// Return the VRC ValueType value based on the type of the animator paramerter given.
+        /// Get all states of an animator layer
+        /// </summary>
+        /// <param name="layer">Layer used.</param>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="AnimatorState"/> contained in the given layer.</returns>
+        public static IEnumerable<AnimatorState> GetLayerStates(this AnimatorControllerLayer layer)
+        {
+            return GetLayerStatesRecursive(layer.stateMachine);
+        }
+
+        /// <summary>
+        /// Return the VRC ValueType value based on the type of the animator parameter given.
         /// </summary>
         /// <param name="type">Animator parameter type.</param>
         /// <returns>VRC SDK3 ValueType that corresponds to the given animator ValueType.</returns>
@@ -379,15 +404,24 @@ namespace VRLabs.AV3Manager
             return (checkedFirst, isOn, false);
         }
         
-        private static AnimatorStateMachine SetInStateMachine (AnimatorStateMachine stateMachine, bool wd)
+        private static void SetInStateMachine (AnimatorStateMachine stateMachine, bool wd)
         {
             foreach (ChildAnimatorState t in stateMachine.states)
                 t.state.writeDefaultValues = wd;
             
             foreach (ChildAnimatorStateMachine t in stateMachine.stateMachines)
                 SetInStateMachine(t.stateMachine, wd);
-            
-            return stateMachine;
+        }
+        
+        private static IEnumerable<AnimatorState> GetLayerStatesRecursive(AnimatorStateMachine stateMachine)
+        {
+            var animatorStates = stateMachine.states
+                .Select(t => t.state)
+                .ToList();
+            foreach (ChildAnimatorStateMachine t in stateMachine.stateMachines)
+                animatorStates.AddRange(GetLayerStatesRecursive(t.stateMachine));
+
+            return animatorStates;
         }
     }
 }

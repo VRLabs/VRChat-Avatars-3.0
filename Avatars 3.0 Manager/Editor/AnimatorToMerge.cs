@@ -33,7 +33,7 @@ namespace VRLabs.AV3Manager
             public static string DuplicateWarning = "The name + suffix are already an used parameter in at least 1 layer, when merging this parameter will be merged with the one already available";
         }
 
-        // Contrsutctor
+        // Constructor
         public AnimatorToMerge(AnimatorController controller, AV3ManagerWindow window)
         {
             Controller = controller;
@@ -116,7 +116,7 @@ namespace VRLabs.AV3Manager
                     {
                         s = ParameterState.Duplicate;
                         int c = 0;
-                        bool combinedNameDuplicate = s == ParameterState.Duplicate;
+                        bool combinedNameDuplicate = true;
                         while (combinedNameDuplicate)
                         {
                             c++;
@@ -134,7 +134,7 @@ namespace VRLabs.AV3Manager
         }
 
         // Gets a Dictionary of the parameters with the original parameter name as key and new parameter name as value
-        public Dictionary<string, string> GetParameterMergingDictionaty()
+        public Dictionary<string, string> GetParameterMergingDictionary()
         {
             Dictionary<string, string> para = new Dictionary<string, string>();
             foreach ((AnimatorControllerParameter p, string s, ParameterState _) in Parameters)

@@ -13,7 +13,8 @@ namespace VRLabs.AV3Manager
 {
     public static class AnimatorCloner
     {
-        private const string _standardNewAnimatorFolder = "Assets/VRLabs/GeneratedAssets/";
+
+        public const string STANDARD_NEW_ANIMATOR_FOLDER = "Assets/VRLabs/GeneratedAssets/";
         private static Dictionary<string, string> _parametersNewName;
         private static string _assetPath;
 
@@ -30,7 +31,7 @@ namespace VRLabs.AV3Manager
             if (saveToNew)
             {
                 Directory.CreateDirectory("Assets/VRLabs/GeneratedAssets");
-                string uniquePath = AssetDatabase.GenerateUniqueAssetPath(_standardNewAnimatorFolder + Path.GetFileName(_assetPath));
+                string uniquePath = AssetDatabase.GenerateUniqueAssetPath(STANDARD_NEW_ANIMATOR_FOLDER + Path.GetFileName(_assetPath));
                 AssetDatabase.CopyAsset(_assetPath, uniquePath);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -63,6 +64,7 @@ namespace VRLabs.AV3Manager
             {
                 AnimatorControllerLayer newL = CloneLayer(controllerToMerge.layers[i], i == 0);
                 newL.name = MakeLayerNameUnique(newL.name, mainController);
+                newL.stateMachine.name = newL.name;
                 mainController.AddLayer(newL);
             }
 
