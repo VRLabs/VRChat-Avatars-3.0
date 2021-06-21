@@ -77,20 +77,32 @@ namespace VRLabs.AV3Manager
             }
             
             foreach (var animationLayer in controller.layers)
-                ApplyLayerAnimationChanges(animationLayer.stateMachine, swaps.Where(x => x.Layer.Equals(animationLayer.name)).ToArray());
+                ApplyLayerAnimationChanges(controller, saveToNew, animationLayer.stateMachine, swaps.Where(x => x.Layer.Equals(animationLayer.name)).ToArray());
 
             return controller;
 
         }
         
-        private static int ApplyLayerAnimationChanges(AnimatorStateMachine stateMachine, AnimationClipSwap[] swaps, int index = 0)
+        private static int ApplyLayerAnimationChanges(AnimatorController controller, bool saveToNew, AnimatorStateMachine stateMachine, AnimationClipSwap[] swaps, int index = 0)
         {
             foreach (var state in stateMachine.states.Select(t => t.state))
             {
                 if (state.name.Equals(swaps[index].State.name))
                 {
                     if (state.motion is BlendTree tree)
+                    {
+                        string assetPath = AssetDatabase.GetAssetPath(tree);
+                        if (saveToNew && !assetPath.Equals(AssetDatabase.GetAssetPath(controller)))
+                        {
+                            Directory.CreateDirectory("Assets/VRLabs/GeneratedAssets");
+                            string uniquePath = AssetDatabase.GenerateUniqueAssetPath(AnimatorCloner.STANDARD_NEW_ANIMATOR_FOLDER + Path.GetFileName(assetPath));
+                            AssetDatabase.CopyAsset(assetPath, uniquePath);
+                            AssetDatabase.SaveAssets();
+                            AssetDatabase.Refresh();
+                            state.motion = tree = AssetDatabase.LoadAssetAtPath<BlendTree>(uniquePath);
+                        }
                         ApplyBlendTreeChanges(tree, swaps[index].TreeMotions);
+                    }
                     else
                         state.motion = swaps[index].Motion;
 
@@ -102,7 +114,7 @@ namespace VRLabs.AV3Manager
                 }
             }
             foreach (ChildAnimatorStateMachine t in stateMachine.stateMachines)
-               index = ApplyLayerAnimationChanges(t.stateMachine, swaps, index);
+               index = ApplyLayerAnimationChanges(controller, saveToNew, t.stateMachine, swaps, index);
 
             return index;
         }

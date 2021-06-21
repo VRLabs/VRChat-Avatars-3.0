@@ -91,6 +91,18 @@ namespace VRLabs.AV3Manager
                     _layers[i] = new LayerOptions(this, _avatar.specialAnimationLayers[i - _avatar.baseAnimationLayers.Length], i);
             }
         }
+        void OnFocus()
+        {
+            if (_layers == null || _avatar == null) return;
+            foreach (LayerOptions layer in _layers)
+            {
+                layer.UpdateParameterList();
+            }
+
+            CleanupParametersList();
+            RefreshWDState();
+        }
+        
 
         //Draw GUI
         public void OnGUI()
@@ -337,7 +349,7 @@ namespace VRLabs.AV3Manager
 
             if (_useDefaultParameters)
             {
-                syncedParameters = syncedParameters.Append(new AnimatorControllerParameter { name = "VRCEmote", type = AnimatorControllerParameterType.Int, defaultInt = 0 })
+                syncedParameters = (syncedParameters ?? Array.Empty<AnimatorControllerParameter>()).Append(new AnimatorControllerParameter { name = "VRCEmote", type = AnimatorControllerParameterType.Int, defaultInt = 0 })
                     .Append(new AnimatorControllerParameter { name = "VRCFaceBlendH", type = AnimatorControllerParameterType.Float, defaultFloat = 0 })
                     .Append(new AnimatorControllerParameter { name = "VRCFaceBlendV", type = AnimatorControllerParameterType.Float, defaultFloat = 0 })
                     .ToArray();

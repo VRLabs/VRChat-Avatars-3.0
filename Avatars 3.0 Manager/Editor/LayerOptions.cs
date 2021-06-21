@@ -231,6 +231,7 @@ namespace VRLabs.AV3Manager
                 try
                 {
                     Layer.animatorController = Controller = _animationClips.SaveClipChanges(Controller);
+                    _window.UpdateLayer(_index, Layer);
                 }
                 catch (Exception e)
                 {
@@ -245,6 +246,7 @@ namespace VRLabs.AV3Manager
                 try
                 {
                     Layer.animatorController = Controller = _animationClips.SaveClipChanges(Controller, true);
+                    _window.UpdateLayer(_index, Layer);
                 }
                 catch (Exception e)
                 {
