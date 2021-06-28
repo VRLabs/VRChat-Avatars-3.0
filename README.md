@@ -450,7 +450,7 @@ Some bandaids to make physics work on avatars. アバターで物理を機能さ
 >
 > Unpack the prefab by right-clicking it and move the prefab to base of your avatar.
 > 
-> Use the [Fix Order](https://github.com/VRLabs/VRChat-Avatars-3.0/releases/download/1/FixOrder.unitypackage) script before uploading or testing. Open VRLabs from the menu bar. Click "Fix Order". Run it again any time the layers related to this package change index order in your Gesture controller. This is so animators in the avatar's hierarchy can reference the correct layers in their VRC Animator Layer Control state behaviors.
+> Use the [Fix Order](https://github.com/VRLabs/VRChat-Avatars-3.0/releases/download/1/FixOrder.unitypackage) script before uploading or testing. Open VRLabs from the menu bar. Click "Fix Order". Run it again any time the layers related to this package change index order in your Gesture controller. This is so animators in the prefab's hierarchy can reference the correct layers in their VRC Animator Layer Control state behaviors.
 >
 > World Physics/Rigidbody and World Physics/Rigidbody/Collider are set up for a physics demo. A cube falls and collides with the world.
 >
