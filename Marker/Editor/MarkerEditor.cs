@@ -34,10 +34,10 @@ namespace MarkerSystem
 
 		public void Reset()
 		{
-			if (((Marker)target).gameObject.GetComponent<VRCAvatarDescriptor>() != null)
-			{
-				descriptor = ((Marker)target).gameObject.GetComponent<VRCAvatarDescriptor>();
-			}
+            if (((Marker)target).gameObject.GetComponent<VRCAvatarDescriptor>() != null)
+            {
+                descriptor = ((Marker)target).gameObject.GetComponent<VRCAvatarDescriptor>();
+            }
 
 			leftHanded = ((Marker)target).leftHanded;
 			writeDefaults = ((Marker)target).writeDefaults;
@@ -168,15 +168,11 @@ namespace MarkerSystem
 				{
 					if (GUILayout.Button("Finish Setup", buttonStyle))
 					{
-						if (!((Marker)target).useIndexFinger)
-						{
-							((Marker)target).markerModel.GetComponent<MeshRenderer>().enabled = false;  // turn off marker model
-						}
-						DestroyImmediate(((Marker)target).system.GetComponent<ScaleConstraint>()); // was used to scale Draw & Eraser
-						DestroyImmediate((Marker)target);
-						// end script
-					}
-				}
+                        DestroyImmediate(((Marker)target));
+                        DestroyImmediate(this);
+                        // end script
+                    }
+                }
 			}
 
 			((Marker)target).leftHanded = leftHanded;
@@ -189,7 +185,7 @@ namespace MarkerSystem
 			((Marker)target).gestureToDraw = gestureToDraw;
 		}
 
-		public void Generate()
+        public void Generate()
 		{
 			// Unique directory setup, named after avatar
 			Directory.CreateDirectory("Assets/VRLabs/GeneratedAssets/Marker/");
@@ -455,7 +451,7 @@ namespace MarkerSystem
 				}
 				else
 				{
-					markerTarget.SetParent(indexDistal, false);
+					markerTarget.SetParent(indexDistal, true);
 				}
 			}
 			else // using model: scale Model to target freely, and until script is destroyed, scale System to target uniformly with X-axis 

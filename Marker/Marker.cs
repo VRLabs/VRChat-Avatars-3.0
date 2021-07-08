@@ -15,7 +15,7 @@ namespace MarkerSystem
 		public int gestureToDraw = 3;
 
 		public Transform markerTarget, markerModel, system;
-		public bool finished;
+		public bool finished = false;
 
 		public void Update()
 		{
@@ -50,6 +50,18 @@ namespace MarkerSystem
 				triggerModule.radiusScale = scale.x * 0.6f; // bit more than half is OK
 			}
 		}
-	}
+        public void OnDestroy()
+        {
+            if (finished)
+            {
+                if (!useIndexFinger)
+                {
+                    markerModel.GetComponent<MeshRenderer>().enabled = false;  // turn off marker model
+                }
+                DestroyImmediate(system.GetComponent<ScaleConstraint>()); // was used to scale Draw & Eraser
+                // end script
+            }
+        }
+    }
 }
 #endif
