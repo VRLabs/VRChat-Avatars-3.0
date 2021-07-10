@@ -75,7 +75,7 @@ namespace VRLabs.AV3Manager
         private LayerOptions[] _layers;
         private WindowSection _section;
         private bool _showContent;
-        private bool _useDefaultParameters = true;
+        private bool _useDefaultParameters;
         private bool _isMixedWriteDefaults;
 
         // Rebuild layer objects
@@ -132,13 +132,8 @@ namespace VRLabs.AV3Manager
                         GenerateNewExpressionMenuAsset();
 
                     UsedParameterMemory = _avatar.expressionParameters.CalcTotalCost();
-
-                    _useDefaultParameters = _avatar.expressionParameters.FindParameter("VRCEmote") != null ||
-                                            _avatar.expressionParameters.FindParameter("VRCFaceBlendH") != null ||
-                                            _avatar.expressionParameters.FindParameter("VRCFaceBlendV") != null;
-
+                    _useDefaultParameters = EditorPrefs.GetBool("AV3ManagerDefaultParams");
                     RefreshWDState();
-
                     RebuildLayers();
                 }
             }
@@ -212,8 +207,10 @@ namespace VRLabs.AV3Manager
             
             if (GUILayout.Button(Content.RefreshParameterList))
                 CleanupParametersList();
-
+            EditorGUI.BeginChangeCheck();
             _useDefaultParameters = EditorGUILayout.Toggle(Content.ToggleDefaultParameters, _useDefaultParameters);
+            if (EditorGUI.EndChangeCheck())
+                EditorPrefs.SetBool("AV3ManagerDefaultParams", _useDefaultParameters);
 
             GUILayout.Space(10);
 
