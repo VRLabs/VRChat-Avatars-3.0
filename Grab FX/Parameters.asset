@@ -15,9 +15,9 @@ MonoBehaviour:
   parameters:
   - name: LeftGrabFX
     valueType: 0
-    saved: 1
+    saved: 0
     defaultValue: 0
   - name: RightGrabFX
     valueType: 0
-    saved: 1
+    saved: 0
     defaultValue: 0
