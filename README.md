@@ -189,7 +189,7 @@ Ten grabbable avatar objects. つかむことができる10個のアバターオ
 >
 > The item numbers will be weighted to the #:Left or #:Right transforms as the Left Hand and Right Hand transforms touch the #:Contact Area bounds. 
 >
-> Enable the Collision/#/Enable object for the item to be grabbable. If you are using the prefab in the Resources folder, the object you should enable is the #:Contact Area. Optionally, toggle this object in-game to turn off grabbing for that item.
+> Enable the Collision/#/Enable object for the item to be grabbable. If you are using the prefab in the Resources folder, the object you should enable is the #:Contact Area. Optionally, toggle this object in-game to turn off grabbing for the item.
 >
 > If you wish to edit the hand-grab radius, change the start size of a numbered particle under Collision/Left or Collision/Right hierarchy.
 >
