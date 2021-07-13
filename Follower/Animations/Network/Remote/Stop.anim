@@ -153,9 +153,9 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: m_TranslationOffsets.Array.data[0].y
+    attribute: m_TranslationOffset.y
     path: "Follower/\uA730\u1D0F\u029F\u029F\u1D0F\u1D21"
-    classID: 1773428102
+    classID: 1818360608
     script: {fileID: 0}
   - curve:
       serializedVersion: 2
@@ -181,9 +181,9 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: m_TranslationOffsets.Array.data[0].y
+    attribute: m_TranslationOffset.y
     path: Follower/Collider
-    classID: 1773428102
+    classID: 1818360608
     script: {fileID: 0}
   m_PPtrCurves: []
   m_SampleRate: 60
@@ -223,17 +223,17 @@ AnimationClip:
       isPPtrCurve: 0
     - serializedVersion: 2
       path: 1221593200
-      attribute: 9
+      attribute: 4294967285
       script: {fileID: 0}
-      typeID: 1773428102
-      customType: 35
+      typeID: 1818360608
+      customType: 31
       isPPtrCurve: 0
     - serializedVersion: 2
       path: 2224719530
-      attribute: 9
+      attribute: 4294967285
       script: {fileID: 0}
-      typeID: 1773428102
-      customType: 35
+      typeID: 1818360608
+      customType: 31
       isPPtrCurve: 0
     pptrCurveMapping: []
   m_AnimationClipSettings:
@@ -393,9 +393,9 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: m_TranslationOffsets.Array.data[0].y
+    attribute: m_TranslationOffset.y
     path: "Follower/\uA730\u1D0F\u029F\u029F\u1D0F\u1D21"
-    classID: 1773428102
+    classID: 1818360608
     script: {fileID: 0}
   - curve:
       serializedVersion: 2
@@ -421,9 +421,9 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: m_TranslationOffsets.Array.data[0].y
+    attribute: m_TranslationOffset.y
     path: Follower/Collider
-    classID: 1773428102
+    classID: 1818360608
     script: {fileID: 0}
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
